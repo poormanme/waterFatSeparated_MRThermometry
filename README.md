@@ -4,7 +4,7 @@
 
 ### DOI: 10.5281/zenodo.582648
 
-#### Megan E. Poorman, Ieva Braskute, Lambertus W. Bartels, and William A. Grissom
+#### Megan E. Poorman, Ieva Braškutė, Lambertus W. Bartels, and William A. Grissom
 #### Vanderbilt University Institute for Imaging Science
 #### Image Sciences Institute, University Medical Center Utrecht
 
