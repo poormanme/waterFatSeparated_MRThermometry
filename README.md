@@ -2,7 +2,7 @@
 ***
 ## Real-time-compatible multiple echo fat-suppressed MR thermometry using iterative separation of baseline water and fat images
 
-### DOI:
+### DOI: 10.5281/zenodo.582648
 
 #### Megan E. Poorman, Ieva Braskute, Lambertus W. Bartels, and William A. Grissom
 #### Vanderbilt University Institute for Imaging Science
