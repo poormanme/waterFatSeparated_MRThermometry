@@ -49,6 +49,7 @@ function [m,wts,c,A,phi] = thermo_hybrid_waterfat(imgs, algp, scanp, lib, mswitc
 
 %% --- Initialization --- %%
 %--- construct 2nd order finite difference roughness penalty object
+% keyboard
 if isfield('algp','beta')
   R = Robject(ones(scanp.dim(1),scanp.dim(2)),'order',2,'beta',algp.beta,'type_denom','matlab');
 else
@@ -90,13 +91,19 @@ else
     phi = phiinit;
 end 
 
-c = zeros(size(A,2),1);
+if isfield(lib,'cinit')
+    c = lib.cinit;
+else
+    c = zeros(size(A,2),1);
+end
 
 if scanp.dim(1)==scanp.dim(2)
     Ac = reshape(A*c,[scanp.dim(1) scanp.dim(2)]);
 else
     Ac = reshape(A*c,[scanp.dim(2) scanp.dim(1)]).';
 end
+
+
 
 if length(scanp.dim) == 1 %assume square
     scanp.dim = [scanp.dim scanp.dim];
@@ -129,7 +136,7 @@ while costOld - cost > algp.stopthresh*costOld
     Z = Z.*repmat(exp(1i*phi),[1 1 size(Z,3) size(Z,4)]); 
     
     % call f_update with true hotspot and Ac
-    if ii == 1  % in first iteration its best to use magnitude images for the fit,
+    if ii == 0  % in first iteration its best to use magnitude images for the fit,
         % in case there is a large phase shift between baselines
         % and dynamic image
         if algp.nlib < size(lib.Wlib,3)
@@ -151,9 +158,11 @@ while costOld - cost > algp.stopthresh*costOld
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % run c_update with current f, m
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+%     keyboard
+    cold = c; % WAG alleviate wraps
+    Acold = Ac;
     for kk = 1:algp.nciter
-        
+%         keyboard
         % calculate and apply weights to baseline images
         Ztot = zeros([scanp.dim(1) scanp.dim(2) length(scanp.tes)]);
         for jj = 1:size(lib.Wlib,3)
@@ -163,7 +172,7 @@ while costOld - cost > algp.stopthresh*costOld
             Ztot = Ztot + Z*wts(jj);
         end
         Ztot = Ztot.*repmat(exp(1i*phi),[1 1 size(Z,3)]);
-
+% keyboard
         % update c
         c = c_update(imgs,Ztot,A,c,scanp.tes,scanp.prc);
         
@@ -176,6 +185,88 @@ while costOld - cost > algp.stopthresh*costOld
  
     end
     
+    if ii == 0 % also run for +/- 1/2/mean(tes), only on first itr
+        disp('Doing update');
+%         keyboard
+        cnew = zeros(length(c),3);
+        % store updated values of Ac, c
+        costSv = cost_eval(imgs,scanp,lib,wts,Ac,m,phi,algp.lam);
+        AcSv = Ac;
+        cSv = c;
+        
+        %if c(1) > cold(1) we increased c in the updates. It is possible that we are in a local minimum and that the global min is more negative          
+            % see if we get a lower error after subtracting
+            % 2*pi/mean(scanp.tes)/2 from initial DC frequency coefficient,
+            % and then updating
+        %else we decreased c in the updates. It is possible that we are in a local minimum and that the global min is more positive
+            % see if we get a lower error after adding
+            % 2*pi/mean(scanp.tes)/2 to initial DC frequency coefficient,
+            % and then updating    
+        %other choice is we were on opposite side of hump, so let's try
+            %both up and down to cover all bases
+            if algp.order<1
+                cnew(:,1) = cold - 2*pi/mean(scanp.tes)/2;
+                cnew(:,2) = cold + 2*pi/mean(scanp.tes)/2;
+                cnew(:,3) = cnew(:,2) + 2*pi/mean(scanp.tes);
+            else
+                cnew(:,1) = [cold(1)-2*pi/mean(scanp.tes)/2; cold(2:end)];
+                cnew(:,2) = [cold(1)+2*pi/mean(scanp.tes)/2; cold(2:end)];
+                cnew(:,3) = [cnew(1,2)+2*pi/mean(scanp.tes)/2; cold(2:end)];
+            end
+
+            if scanp.dim(1)==scanp.dim(2)
+                Actest = reshape(A*cnew,[scanp.dim(1) scanp.dim(2) 3]);
+            else
+                Actest = permute(reshape(A*cnew,[scanp.dim(2) scanp.dim(1) 3]),[2 1 3]);
+            end
+%              keyboard       
+        % try the update with each alternate initial point
+        for dir = 1:size(Actest,3)
+            ctest = cnew(:,dir);
+            for kk = 1:algp.nciter
+                % calculate and apply weights to baseline images
+                Ztot = zeros([scanp.dim(1) scanp.dim(2) length(scanp.tes)]);
+                for jj = 1:size(lib.Wlib,3)
+                    Z = calcmeimgs(lib.Wlib(:,:,jj),lib.Flib(:,:,jj),...
+                        scanp.tes,scanp.b0,lib.dw0lib(:,:,jj)+Actest(:,:,dir),...
+                        lib.R2starlib(:,:,jj),m,scanp.prc);
+                    Ztot = Ztot + Z*wts(jj);
+                end
+                %         keyboard
+                Ztot = Ztot.*repmat(exp(1i*phi),[1 1 size(Z,3)]);
+
+                % update c
+                ctest = c_update(imgs,Ztot,A,ctest,scanp.tes,scanp.prc);
+
+                % recalculate frequency shift map
+                if scanp.dim(1)==scanp.dim(2)
+                    Actest(:,:,dir) = reshape(A*ctest,[scanp.dim(1) scanp.dim(2)]);
+                else
+                    Actest(:,:,dir) = reshape(A*ctest,[scanp.dim(2) scanp.dim(1)]).';
+                end 
+            end
+            cnew(:,dir) = ctest;
+            
+            % evaluate error for each case
+            costAlt(dir) = cost_eval(imgs,scanp,lib,wts,Actest(:,:,dir),m,phi,algp.lam); 
+            costAlt(isnan(costAlt)) = 0;
+        end
+        [minCost,ind] = min(costAlt);
+
+%             if lower, keep these alternate values of c, Ac. 
+            % If not, revert to default ones
+            if minCost > costSv 
+               c = cSv;
+                Ac = AcSv;
+            else
+                c = cnew(:,ind);
+                Ac = Actest(:,:,ind);
+            end
+
+    end
+        
+%     figure(2);im(Ac);
+%     keyboard
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % run phi_update with current f, m,c
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,13 +320,14 @@ while costOld - cost > algp.stopthresh*costOld
     costOld = cost;ii = ii + 1;
     cost = cost_eval(imgs,scanp,lib,wts,Ac,m,phi,algp.lam);
     fprintf('l1-Penalized iteration %d: Cost = %0.2d\n',ii,cost);
+%    keyboard
 end
-
+% return
 %% --- Generate hotspot mask from regularization --- %%
 if algp.modeltest
     %if performing precision model test do not mask
     if ~exist('hsmask','var')
-        hsmask = ones(scanp.dim, scanp.dim);
+        hsmask = ones(scanp.dim(1), scanp.dim(2));
     end
 
 else
@@ -363,6 +455,7 @@ Ztot = zeros([scanp.dim(1) scanp.dim(2) length(scanp.tes)]);
             lib.R2starlib(:,:,jj),m,scanp.prc);
         Ztot = Ztot + Z*wts(jj);
     end
+%     keyboard
 Ztot = Ztot.*repmat(exp(1i*phi),[1 1 size(Z,3) size(Z,4)]); 
 cost = 1/2*norm(imgs(:)-Ztot(:))^2;
 if exist('lam','var')
