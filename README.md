@@ -2,8 +2,6 @@
 ***
 ## Multi-echo fat-suppressed MR thermometry using iterative separation of baseline water and fat images
 
-### DOI: 10.5281/zenodo.582648
-
 #### Megan E. Poorman, Ieva Braškutė, Lambertus W. Bartels, and William A. Grissom
 #### Vanderbilt University Institute of Imaging Science
 #### Image Sciences Institute, University Medical Center Utrecht
