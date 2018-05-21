@@ -1,6 +1,6 @@
 function phi = phi_update(imgs,Z,phi,tes,prc)
-%% Real-time-compatible multiple echo fat-suppressed MR thermometry using
-%% iterative separation of baseline water and fat images
+%% Multi-echo fat-suppressed MR thermometry using iterative separation 
+%% of baseline water and fat images
 % Function to fit DC shift due to Tx/Rx gain differences
 %
 % Creators: Megan Poorman, William Grissom

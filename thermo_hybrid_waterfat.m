@@ -1,13 +1,13 @@
 function [m,wts,c,A,phi] = thermo_hybrid_waterfat(imgs, algp, scanp, lib, mswitch, phiswitch,minit,phiinit,hsmask)
-%% Real-time-compatible multiple echo fat-suppressed MR thermometry using
-%% iterative separation of baseline water and fat images
+%% Multi-echo fat-suppressed MR thermometry using iterative separation 
+%% of baseline water and fat images
 % Function to solve for heating, field shifts, and select a baseline in the
 % presence of fat. 
 %
 % Creators: Megan Poorman, William Grissom
 % Location: Vanderbilt University Institute of Imaging Science
 % Created: 08/2014
-% Updated: 05/2017
+% Updated: 05/2018
 % Do not reproduce, distribute, or modify without proper citation according
 % to license file
 %
@@ -44,8 +44,7 @@ function [m,wts,c,A,phi] = thermo_hybrid_waterfat(imgs, algp, scanp, lib, mswitc
 
 % M Poorman, W Grissom, Vanderbilt University Insitute of Imaging Science
 % Created 2014
-% Current usage for collaborators only, do not distribute or disclose 
-% publicly without above permission
+% Do not distribute publicly without above permission
 
 %% --- Initialization --- %%
 %--- construct 2nd order finite difference roughness penalty object

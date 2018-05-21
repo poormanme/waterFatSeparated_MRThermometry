@@ -1,6 +1,6 @@
 function m = m_update(imgsw,Zw,m,tes,prc,algp,mask,R)
-%% Real-time-compatible multiple echo fat-suppressed MR thermometry using
-%% iterative separation of baseline water and fat images
+%% Multi-echo fat-suppressed MR thermometry using iterative separation 
+%% of baseline water and fat images
 % Function to fit PRF shift due to heating
 %
 % Creators: Megan Poorman, William Grissom

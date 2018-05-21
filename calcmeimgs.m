@@ -1,6 +1,6 @@
 function [imgs,wimgs,fimgs] = calcmeimgs(W,F,tes,b0,dw0,r2star,dww,prc,fatmodel)
-%% Real-time-compatible multiple echo fat-suppressed MR thermometry using
-%% iterative separation of baseline water and fat images
+%% Multi-echo fat-suppressed MR thermometry using iterative separation 
+%% of baseline water and fat images
 % Function to re-calculate/synthesize multi-echo images from provided Water
 % and Fat images, given a fat spectrum model
 %

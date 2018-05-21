@@ -1,6 +1,6 @@
 function c = c_update(imgs,Z,A,c,tes,prc,m)%Z2)
-%% Real-time-compatible multiple echo fat-suppressed MR thermometry using
-%% iterative separation of baseline water and fat images
+%% Multi-echo fat-suppressed MR thermometry using iterative separation 
+%% of baseline water and fat images
 % Function to find the coefficients on the backgrond polynomial fit to
 % background phase
 %
@@ -8,9 +8,10 @@ function c = c_update(imgs,Z,A,c,tes,prc,m)%Z2)
 % Creators: Megan Poorman, William Grissom
 % Location: Vanderbilt University Institute of Imaging Science
 % Created: 08/2014
-% Updated: 05/2017
+% Updated: 05/2018
 % Do not reproduce, distribute, or modify without proper citation according
-% to license file 
+% to license file
+%
 % NEWTON's METHOD GRADIENT DESCENT
 %
 % Inputs:

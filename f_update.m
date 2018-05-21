@@ -1,6 +1,6 @@
 function [w,libinds] = f_update(imgs,Z,usequadprog,nlib) 
-%% Real-time-compatible multiple echo fat-suppressed MR thermometry using
-%% iterative separation of baseline water and fat images
+%% Multi-echo fat-suppressed MR thermometry using iterative separation 
+%% of baseline water and fat images
 % Function to find the weights that best match the baseline library to the
 % multi echo images
 %
